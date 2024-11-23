@@ -29,29 +29,36 @@ import com.google.mlkit.vision.face.FaceLandmark.LandmarkType;
 import java.util.Locale;
 
 /**
- * Graphic instance for rendering face position, contour, and landmarks within the associated
+ * Graphic instance for rendering face position, contour, and landmarks within
+ * the associated
  * graphic overlay view.
  */
 public class FaceGraphic extends Graphic {
+  private static final String SMILING_EMOJI = "\uD83D\uDE00"; // 😀
+  private static final String JOY_EMOJI = "\uD83D\uDE02"; // 😂
+  private static final String NEUTRAL_EMOJI = "\uD83D\uDE10"; // 😐
+  private static final String WINKING_EMOJI = "\uD83D\uDE09"; // 😉
+  private static final String SLEEPING_EMOJI = "\uD83D\uDE34"; // 😴
+  private static final float TEXT_SIZE = 200.0f;
+  private final Paint idPaint;
   private static final float FACE_POSITION_RADIUS = 8.0f;
   private static final float ID_TEXT_SIZE = 30.0f;
   private static final float ID_Y_OFFSET = 40.0f;
   private static final float BOX_STROKE_WIDTH = 5.0f;
   private static final int NUM_COLORS = 10;
-  private static final int[][] COLORS =
-      new int[][] {
-        // {Text color, background color}
-        {Color.BLACK, Color.WHITE},
-        {Color.WHITE, Color.MAGENTA},
-        {Color.BLACK, Color.LTGRAY},
-        {Color.WHITE, Color.RED},
-        {Color.WHITE, Color.BLUE},
-        {Color.WHITE, Color.DKGRAY},
-        {Color.BLACK, Color.CYAN},
-        {Color.BLACK, Color.YELLOW},
-        {Color.WHITE, Color.BLACK},
-        {Color.BLACK, Color.GREEN}
-      };
+  private static final int[][] COLORS = new int[][] {
+      // {Text color, background color}
+      { Color.BLACK, Color.WHITE },
+      { Color.WHITE, Color.MAGENTA },
+      { Color.BLACK, Color.LTGRAY },
+      { Color.WHITE, Color.RED },
+      { Color.WHITE, Color.BLUE },
+      { Color.WHITE, Color.DKGRAY },
+      { Color.BLACK, Color.CYAN },
+      { Color.BLACK, Color.YELLOW },
+      { Color.WHITE, Color.BLACK },
+      { Color.BLACK, Color.GREEN }
+  };
 
   private final Paint facePositionPaint;
   private final Paint[] idPaints;
@@ -65,6 +72,10 @@ public class FaceGraphic extends Graphic {
 
     this.face = face;
     final int selectedColor = Color.WHITE;
+
+    idPaint = new Paint();
+    idPaint.setColor(Color.WHITE);
+    idPaint.setTextSize(TEXT_SIZE);
 
     facePositionPaint = new Paint();
     facePositionPaint.setColor(selectedColor);
@@ -92,23 +103,31 @@ public class FaceGraphic extends Graphic {
   /** Draws the face annotations for position on the supplied canvas. */
   @Override
   public void draw(Canvas canvas) {
+
     Face face = this.face;
     if (face == null) {
       return;
     }
 
-    // Draws a circle at the position of the detected face, with the face's track id below.
+    // Draws a circle at the position of the detected face, with the face's track id
+    // below.
     float x = translateX(face.getBoundingBox().centerX());
     float y = translateY(face.getBoundingBox().centerY());
-    canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
+//    canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
 
     // Calculate positions.
-    float left = x - scale(face.getBoundingBox().width() / 2.0f);
-    float top = y - scale(face.getBoundingBox().height() / 2.0f);
-    float right = x + scale(face.getBoundingBox().width() / 2.0f);
-    float bottom = y + scale(face.getBoundingBox().height() / 2.0f);
+    float xOffset = scale(face.getBoundingBox().width() / 2.0f);
+    float yOffset = scale(face.getBoundingBox().height() / 2.0f);
+    float left = x - xOffset;
+    float top = y - yOffset;
+    float right = x + xOffset;
+    float bottom = y + yOffset;
     float lineHeight = ID_TEXT_SIZE + BOX_STROKE_WIDTH;
     float yLabelOffset = (face.getTrackingId() == null) ? 0 : -lineHeight;
+
+    // Calculate face size
+    float faceWidth = face.getBoundingBox().width();
+    float faceHeight = face.getBoundingBox().height();
 
     // Decide color based on face ID
     int colorID = (face.getTrackingId() == null) ? 0 : Math.abs(face.getTrackingId() % NUM_COLORS);
@@ -117,60 +136,81 @@ public class FaceGraphic extends Graphic {
     float textWidth = idPaints[colorID].measureText("ID: " + face.getTrackingId());
     if (face.getSmilingProbability() != null) {
       yLabelOffset -= lineHeight;
-      textWidth =
-          Math.max(
-              textWidth,
-              idPaints[colorID].measureText(
-                  String.format(Locale.US, "Happiness: %.2f", face.getSmilingProbability())));
+      textWidth = Math.max(
+          textWidth,
+          idPaints[colorID].measureText(
+              String.format(Locale.US, "Happiness: %.2f", face.getSmilingProbability())));
     }
+
+    // Determine which emoji to display
+    String emoji = NEUTRAL_EMOJI;
+    if (face.getSmilingProbability() != null && face.getSmilingProbability() > 0.95) {
+      emoji = JOY_EMOJI;
+    } else if (face.getSmilingProbability() != null && face.getSmilingProbability() > 0.6) {
+      emoji = SMILING_EMOJI;
+  } else if (face.getLeftEyeOpenProbability() != null && face.getRightEyeOpenProbability() != null) {
+      if (face.getLeftEyeOpenProbability() < 0.5 && face.getRightEyeOpenProbability() < 0.5) {
+        emoji = SLEEPING_EMOJI;
+      } else if (face.getLeftEyeOpenProbability() < 0.5 || face.getRightEyeOpenProbability() < 0.5) {
+        emoji = WINKING_EMOJI;
+      }
+    }
+
+    float TextSize = (faceWidth + faceHeight) * 2;
+    idPaint.setTextSize(TextSize);
+
+    // Draw the emoji
+    canvas.drawText(
+        emoji,
+        x - TextSize / 2,
+        y + TextSize / 2,
+        idPaint);
+
+
+/**
     if (face.getLeftEyeOpenProbability() != null) {
       yLabelOffset -= lineHeight;
-      textWidth =
-          Math.max(
-              textWidth,
-              idPaints[colorID].measureText(
-                  String.format(
-                      Locale.US, "Left eye open: %.2f", face.getLeftEyeOpenProbability())));
+      textWidth = Math.max(
+          textWidth,
+          idPaints[colorID].measureText(
+              String.format(
+                  Locale.US, "Left eye open: %.2f", face.getLeftEyeOpenProbability())));
     }
     if (face.getRightEyeOpenProbability() != null) {
       yLabelOffset -= lineHeight;
-      textWidth =
-          Math.max(
-              textWidth,
-              idPaints[colorID].measureText(
-                  String.format(
-                      Locale.US, "Right eye open: %.2f", face.getRightEyeOpenProbability())));
+      textWidth = Math.max(
+          textWidth,
+          idPaints[colorID].measureText(
+              String.format(
+                  Locale.US, "Right eye open: %.2f", face.getRightEyeOpenProbability())));
     }
 
-    yLabelOffset = yLabelOffset - 3 * lineHeight;
-    textWidth =
-        Math.max(
-            textWidth,
-            idPaints[colorID].measureText(
-                String.format(Locale.US, "EulerX: %.2f", face.getHeadEulerAngleX())));
-    textWidth =
-        Math.max(
-            textWidth,
-            idPaints[colorID].measureText(
-                String.format(Locale.US, "EulerY: %.2f", face.getHeadEulerAngleY())));
-    textWidth =
-        Math.max(
-            textWidth,
-            idPaints[colorID].measureText(
-                String.format(Locale.US, "EulerZ: %.2f", face.getHeadEulerAngleZ())));
-    // Draw labels
-    canvas.drawRect(
-        left - BOX_STROKE_WIDTH,
-        top + yLabelOffset,
-        left + textWidth + (2 * BOX_STROKE_WIDTH),
-        top,
-        labelPaints[colorID]);
-    yLabelOffset += ID_TEXT_SIZE;
-    canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
-    if (face.getTrackingId() != null) {
-      canvas.drawText("ID: " + face.getTrackingId(), left, top + yLabelOffset, idPaints[colorID]);
-      yLabelOffset += lineHeight;
-    }
+//    yLabelOffset = yLabelOffset - 3 * lineHeight;
+//    textWidth = Math.max(
+//        textWidth,
+//        idPaints[colorID].measureText(
+//            String.format(Locale.US, "EulerX: %.2f", face.getHeadEulerAngleX())));
+//    textWidth = Math.max(
+//        textWidth,
+//        idPaints[colorID].measureText(
+//            String.format(Locale.US, "EulerY: %.2f", face.getHeadEulerAngleY())));
+//    textWidth = Math.max(
+//        textWidth,
+//        idPaints[colorID].measureText(
+//            String.format(Locale.US, "EulerZ: %.2f", face.getHeadEulerAngleZ())));
+//    // Draw labels
+//    canvas.drawRect(
+//        left - BOX_STROKE_WIDTH,
+//        top + yLabelOffset,
+//        left + textWidth + (2 * BOX_STROKE_WIDTH),
+//        top,
+//        labelPaints[colorID]);
+//    yLabelOffset += ID_TEXT_SIZE;
+//    canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
+//    if (face.getTrackingId() != null) {
+//      canvas.drawText("ID: " + face.getTrackingId(), left, top + yLabelOffset, idPaints[colorID]);
+//      yLabelOffset += lineHeight;
+//    }
 
     // Draws all face contours.
     for (FaceContour contour : face.getAllContours()) {
@@ -200,8 +240,7 @@ public class FaceGraphic extends Graphic {
       yLabelOffset += lineHeight;
     }
     if (leftEye != null) {
-      float leftEyeLeft =
-          translateX(leftEye.getPosition().x) - idPaints[colorID].measureText("Left Eye") / 2.0f;
+      float leftEyeLeft = translateX(leftEye.getPosition().x) - idPaints[colorID].measureText("Left Eye") / 2.0f;
       canvas.drawRect(
           leftEyeLeft - BOX_STROKE_WIDTH,
           translateY(leftEye.getPosition().y) + ID_Y_OFFSET - ID_TEXT_SIZE,
@@ -225,8 +264,7 @@ public class FaceGraphic extends Graphic {
       yLabelOffset += lineHeight;
     }
     if (rightEye != null) {
-      float rightEyeLeft =
-          translateX(rightEye.getPosition().x) - idPaints[colorID].measureText("Right Eye") / 2.0f;
+      float rightEyeLeft = translateX(rightEye.getPosition().x) - idPaints[colorID].measureText("Right Eye") / 2.0f;
       canvas.drawRect(
           rightEyeLeft - BOX_STROKE_WIDTH,
           translateY(rightEye.getPosition().y) + ID_Y_OFFSET - ID_TEXT_SIZE,
@@ -265,5 +303,6 @@ public class FaceGraphic extends Graphic {
           FACE_POSITION_RADIUS,
           facePositionPaint);
     }
+ */
   }
 }

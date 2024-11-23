@@ -1,4 +1,4 @@
-#Sat Nov 23 12:13:05 CET 2024
+#Sat Nov 23 16:32:50 CET 2024
 base.0=C\:\\Users\\fadyg\\Downloads\\mlkit-master\\android\\vision-quickstart\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=C\:\\Users\\fadyg\\Downloads\\mlkit-master\\android\\vision-quickstart\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
 base.10=C\:\\Users\\fadyg\\Downloads\\mlkit-master\\android\\vision-quickstart\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\5\\classes.dex

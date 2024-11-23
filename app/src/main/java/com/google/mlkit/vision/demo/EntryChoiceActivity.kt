@@ -27,6 +27,7 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.demo.java.ChooserActivity
+import com.google.mlkit.vision.demo.java.LivePreviewActivity
 import java.util.ArrayList
 
 class EntryChoiceActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsResultCallback {
@@ -35,11 +36,10 @@ class EntryChoiceActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_vision_entry_choice)
 
-    findViewById<TextView>(R.id.java_entry_point).setOnClickListener {
-      val intent = Intent(this@EntryChoiceActivity, ChooserActivity::class.java)
+//    findViewById<TextView>(R.id.java_entry_point).setOnClickListener {
+      val intent = Intent(this@EntryChoiceActivity, LivePreviewActivity::class.java)
       startActivity(intent)
-    }
-
+//    }
     findViewById<TextView>(R.id.kotlin_entry_point).setOnClickListener {
       val intent =
         Intent(

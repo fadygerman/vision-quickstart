@@ -42,7 +42,13 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
 
   public FaceDetectorProcessor(Context context) {
     super(context);
-    FaceDetectorOptions faceDetectorOptions = PreferenceUtils.getFaceDetectorOptions(context);
+//    FaceDetectorOptions faceDetectorOptions = PreferenceUtils.getFaceDetectorOptions(context);
+    FaceDetectorOptions faceDetectorOptions = new FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+            .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL) // Enable classification
+            .build();
     Log.v(MANUAL_TESTING_LOG, "Face detector options: " + faceDetectorOptions);
     detector = FaceDetection.getClient(faceDetectorOptions);
   }
