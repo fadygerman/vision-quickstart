@@ -27,6 +27,7 @@
       layout="@layout/settings_style"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:visibility="gone"
       app:layout_constraintRight_toRightOf="@id/preview_view"
       app:layout_constraintTop_toTopOf="@id/preview_view" />
 
@@ -46,7 +47,7 @@
         android:background="@layout/toggle_style"
         android:checked="false"
         android:textOff=""
-        android:textOn=""/>
+        android:textOn="" />
 
     <Spinner
         android:id="@+id/spinner"
