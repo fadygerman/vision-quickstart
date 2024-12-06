@@ -141,7 +141,7 @@ public class FaceGraphic extends Graphic {
         emoji = GRINNING_EMOJI;
       } else if (face.getSmilingProbability() > 0.5) {
         emoji = SMILING_EMOJI;
-      } else if (face.getSmilingProbability() < 0.5 && topLipDistance < -1) {
+      } else if (face.getSmilingProbability() < 0.5 && topLipDistance < -2) {
         emoji = FROWN_EMOJI;
       }
     }

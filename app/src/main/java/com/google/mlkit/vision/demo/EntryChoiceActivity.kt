@@ -23,7 +23,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
-import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.demo.java.LivePreviewActivity
@@ -35,7 +34,6 @@ class EntryChoiceActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_vision_entry_choice)
 
-    // shortcut initial option to use Java vs. Kotlin
     val intent = Intent(this@EntryChoiceActivity, LivePreviewActivity::class.java)
     startActivity(intent)
 
@@ -43,28 +41,6 @@ class EntryChoiceActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
       getRuntimePermissions()
     }
   }
-
-//  override fun onCreate(savedInstanceState: Bundle?) {
-//    super.onCreate(savedInstanceState)
-//    setContentView(R.layout.activity_vision_entry_choice)
-//
-//    findViewById<TextView>(R.id.java_entry_point).setOnClickListener {
-//      val intent = Intent(this@EntryChoiceActivity, LivePreviewActivity::class.java)
-//      startActivity(intent)
-//    }
-//    findViewById<TextView>(R.id.kotlin_entry_point).setOnClickListener {
-//      val intent =
-//        Intent(
-//          this@EntryChoiceActivity,
-//          com.google.mlkit.vision.demo.kotlin.ChooserActivity::class.java
-//        )
-//      startActivity(intent)
-//    }
-//
-//    if (!allRuntimePermissionsGranted()) {
-//      getRuntimePermissions()
-//    }
-//  }
 
   private fun allRuntimePermissionsGranted(): Boolean {
     for (permission in REQUIRED_RUNTIME_PERMISSIONS) {
