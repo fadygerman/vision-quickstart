@@ -5,7 +5,7 @@ android {
     compileSdkVersion 34
 
     defaultConfig {
-        applicationId "com.google.mlkit.vision.demo"
+        applicationId "com.google.mlkit.vision.emojify"
         minSdkVersion 21
         multiDexEnabled true
         targetSdkVersion 34
@@ -35,14 +35,15 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     // Do NOT compress tflite model files (need to call out to developers!)
     aaptOptions {
         noCompress "tflite"
     }
+    namespace 'com.google.mlkit.vision.demo'
 }
 
 repositories {

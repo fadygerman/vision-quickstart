@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.google.mlkit.vision.demo",
+  "applicationId": "com.google.mlkit.vision.emojify",
   "variantName": "debug",
   "elements": [
     {
@@ -16,5 +16,6 @@
       "outputFile": "vision-quickstart-debug.apk"
     }
   ],
-  "elementType": "File"
+  "elementType": "File",
+  "minSdkVersionForDexing": 24
 }

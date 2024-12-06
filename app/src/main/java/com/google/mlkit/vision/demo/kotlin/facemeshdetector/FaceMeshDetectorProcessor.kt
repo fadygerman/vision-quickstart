@@ -18,7 +18,6 @@ package com.google.mlkit.vision.demo.kotlin.facemeshdetector
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Task
-import com.google.android.odml.image.MlImage
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.demo.GraphicOverlay
 import com.google.mlkit.vision.demo.kotlin.VisionProcessorBase

@@ -81,7 +81,7 @@ public class CameraSource {
 
   private Size previewSize;
 
-  private static final float REQUESTED_FPS = 30.0f;
+  private static final float REQUESTED_FPS = 1.0f; // was 30.0
   private static final boolean REQUESTED_AUTO_FOCUS = true;
 
   // This instance needs to be held onto to avoid GC of its underlying resources. Even though it

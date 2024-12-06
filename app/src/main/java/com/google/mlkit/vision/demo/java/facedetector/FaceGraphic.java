@@ -24,8 +24,7 @@ import com.google.mlkit.vision.demo.GraphicOverlay;
 import com.google.mlkit.vision.demo.GraphicOverlay.Graphic;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceContour;
-import com.google.mlkit.vision.face.FaceLandmark;
-import com.google.mlkit.vision.face.FaceLandmark.LandmarkType;
+
 import java.util.Locale;
 
 /**
@@ -34,9 +33,11 @@ import java.util.Locale;
  * graphic overlay view.
  */
 public class FaceGraphic extends Graphic {
-  private static final String SMILING_EMOJI = "\uD83D\uDE00"; // 😀
   private static final String JOY_EMOJI = "\uD83D\uDE02"; // 😂
+  private static final String GRINNING_EMOJI = "\uD83D\uDE00"; // 😀
+  private static final String SMILING_EMOJI = "\uD83D\ude42"; // 🙂
   private static final String NEUTRAL_EMOJI = "\uD83D\uDE10"; // 😐
+  private static final String FROWN_EMOJI = "\uD83D\uDE41"; // 🙁
   private static final String WINKING_EMOJI = "\uD83D\uDE09"; // 😉
   private static final String SLEEPING_EMOJI = "\uD83D\uDE34"; // 😴
   private static final float TEXT_SIZE = 200.0f;
@@ -66,6 +67,9 @@ public class FaceGraphic extends Graphic {
   private final Paint[] labelPaints;
 
   private volatile Face face;
+  private float topLipDistance;
+  private float bottomLipDistance;
+  private float mouthLipDistance;
 
   FaceGraphic(GraphicOverlay overlay, Face face) {
     super(overlay);
@@ -137,89 +141,151 @@ public class FaceGraphic extends Graphic {
     if (face.getSmilingProbability() != null) {
       yLabelOffset -= lineHeight;
       textWidth = Math.max(
-          textWidth,
-          idPaints[colorID].measureText(
-              String.format(Locale.US, "Happiness: %.2f", face.getSmilingProbability())));
+              textWidth,
+              idPaints[colorID].measureText(
+                      String.format(Locale.US, "Happiness: %.2f", face.getSmilingProbability())));
     }
+
+    // Gets mouth shape information
+    for (FaceContour contour : face.getAllContours()) {
+      if (contour.getFaceContourType() == 9) { // UPPER_LIP_BOTTOM
+
+        // get corner and middle coordinates of bottom lip
+        PointF top_corner = contour.getPoints().get(0);
+        PointF top_middle = contour.getPoints().get(4);
+
+        // calculate distance between y positions of points
+        topLipDistance = top_middle.y - top_corner.y;
+
+//        canvas.drawText(
+//                "TOP Distance: " + topLipDistance,
+//                left,
+//                top + yLabelOffset,
+//                idPaints[colorID]
+//        );
+//        yLabelOffset += lineHeight;
+      }
+      if (contour.getFaceContourType() == 11) { // LOWER_LIP_BOTTOM
+
+        // get corner and middle coordinates of bottom lip
+        PointF bottom_corner = contour.getPoints().get(0);
+        PointF bottom_middle = contour.getPoints().get(4);
+
+        // calculate distance between y positions of points
+        bottomLipDistance = bottom_middle.y - bottom_corner.y;
+
+//        canvas.drawText(
+//                "BOTTOM Distance: " + bottomLipDistance,
+//                left,
+//                top + yLabelOffset,
+//                idPaints[colorID]
+//        );
+//        yLabelOffset += lineHeight;
+      }
+//      for (PointF point : contour.getPoints()) {
+//        canvas.drawCircle(
+//                translateX(point.x), translateY(point.y), FACE_POSITION_RADIUS, facePositionPaint);
+//      }
+    }
+
+//    FaceLandmark mouthRight = face.getLandmark(FaceLandmark.MOUTH_RIGHT);
+//    FaceLandmark mouthBottom = face.getLandmark(FaceLandmark.MOUTH_BOTTOM);
+//    if (mouthRight != null && mouthBottom != null) {
+//      mouthLipDistance = mouthBottom.getPosition().y - mouthRight.getPosition().y;
+////      canvas.drawText(
+////                "M: " + mouthLipDistance,
+////                left,
+////                top + yLabelOffset,
+////                idPaints[colorID]
+////        );
+//        yLabelOffset += lineHeight;
+//    }
 
     // Determine which emoji to display
     String emoji = NEUTRAL_EMOJI;
-    if (face.getSmilingProbability() != null && face.getSmilingProbability() > 0.95) {
-      emoji = JOY_EMOJI;
-    } else if (face.getSmilingProbability() != null && face.getSmilingProbability() > 0.6) {
-      emoji = SMILING_EMOJI;
-  } else if (face.getLeftEyeOpenProbability() != null && face.getRightEyeOpenProbability() != null) {
-      if (face.getLeftEyeOpenProbability() < 0.5 && face.getRightEyeOpenProbability() < 0.5) {
+    boolean eyesWinking = face.getLeftEyeOpenProbability() < 0.5 || face.getRightEyeOpenProbability() < 0.5;
+    boolean eyesClosed = face.getLeftEyeOpenProbability() < 0.5  && face.getRightEyeOpenProbability() < 0.5;
+
+    if (face.getSmilingProbability() != null && !eyesWinking && !eyesClosed) {
+      if (face.getSmilingProbability() > 0.99 && bottomLipDistance > 20) {
+        emoji = JOY_EMOJI;
+      } else if (face.getSmilingProbability() > 0.75 && bottomLipDistance > 12){
+        emoji = GRINNING_EMOJI;
+      } else if (face.getSmilingProbability() > 0.5) {
+        emoji = SMILING_EMOJI;
+      } else if (face.getSmilingProbability() < 0.5 && topLipDistance < -1) {
+        emoji = FROWN_EMOJI;
+      }
+    }
+    else if (face.getLeftEyeOpenProbability() != null && face.getRightEyeOpenProbability() != null) {
+      if (eyesClosed) {
         emoji = SLEEPING_EMOJI;
-      } else if (face.getLeftEyeOpenProbability() < 0.5 || face.getRightEyeOpenProbability() < 0.5) {
+      } else if (eyesWinking) {
         emoji = WINKING_EMOJI;
       }
     }
 
-    float TextSize = (faceWidth + faceHeight) * 2;
+    float TextSize = (faceWidth + faceHeight) * 1.7f; // was 2
     idPaint.setTextSize(TextSize);
+    idPaint.setAlpha(180);
 
     // Draw the emoji
     canvas.drawText(
-        emoji,
-        x - TextSize / 2,
-        y + TextSize / 2,
-        idPaint);
+            emoji,
+            x - (TextSize / 1.7f), // remove 3*
+            y + TextSize / 2.5f, // + not -
+            idPaint);
+
+  }
 
 
 /**
-    if (face.getLeftEyeOpenProbability() != null) {
-      yLabelOffset -= lineHeight;
-      textWidth = Math.max(
-          textWidth,
-          idPaints[colorID].measureText(
-              String.format(
-                  Locale.US, "Left eye open: %.2f", face.getLeftEyeOpenProbability())));
-    }
-    if (face.getRightEyeOpenProbability() != null) {
-      yLabelOffset -= lineHeight;
-      textWidth = Math.max(
-          textWidth,
-          idPaints[colorID].measureText(
-              String.format(
-                  Locale.US, "Right eye open: %.2f", face.getRightEyeOpenProbability())));
-    }
+ if (face.getLeftEyeOpenProbability() != null) {
+ yLabelOffset -= lineHeight;
+ textWidth = Math.max(
+ textWidth,
+ idPaints[colorID].measureText(
+ String.format(
+ Locale.US, "Left eye open: %.2f", face.getLeftEyeOpenProbability())));
+ }
+ if (face.getRightEyeOpenProbability() != null) {
+ yLabelOffset -= lineHeight;
+ textWidth = Math.max(
+ textWidth,
+ idPaints[colorID].measureText(
+ String.format(
+ Locale.US, "Right eye open: %.2f", face.getRightEyeOpenProbability())));
+ }
 
-//    yLabelOffset = yLabelOffset - 3 * lineHeight;
-//    textWidth = Math.max(
-//        textWidth,
-//        idPaints[colorID].measureText(
-//            String.format(Locale.US, "EulerX: %.2f", face.getHeadEulerAngleX())));
-//    textWidth = Math.max(
-//        textWidth,
-//        idPaints[colorID].measureText(
-//            String.format(Locale.US, "EulerY: %.2f", face.getHeadEulerAngleY())));
-//    textWidth = Math.max(
-//        textWidth,
-//        idPaints[colorID].measureText(
-//            String.format(Locale.US, "EulerZ: %.2f", face.getHeadEulerAngleZ())));
-//    // Draw labels
-//    canvas.drawRect(
-//        left - BOX_STROKE_WIDTH,
-//        top + yLabelOffset,
-//        left + textWidth + (2 * BOX_STROKE_WIDTH),
-//        top,
-//        labelPaints[colorID]);
-//    yLabelOffset += ID_TEXT_SIZE;
-//    canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
-//    if (face.getTrackingId() != null) {
-//      canvas.drawText("ID: " + face.getTrackingId(), left, top + yLabelOffset, idPaints[colorID]);
-//      yLabelOffset += lineHeight;
-//    }
+ //    yLabelOffset = yLabelOffset - 3 * lineHeight;
+ //    textWidth = Math.max(
+ //        textWidth,
+ //        idPaints[colorID].measureText(
+ //            String.format(Locale.US, "EulerX: %.2f", face.getHeadEulerAngleX())));
+ //    textWidth = Math.max(
+ //        textWidth,
+ //        idPaints[colorID].measureText(
+ //            String.format(Locale.US, "EulerY: %.2f", face.getHeadEulerAngleY())));
+ //    textWidth = Math.max(
+ //        textWidth,
+ //        idPaints[colorID].measureText(
+ //            String.format(Locale.US, "EulerZ: %.2f", face.getHeadEulerAngleZ())));
+ //    // Draw labels
+ //    canvas.drawRect(
+ //        left - BOX_STROKE_WIDTH,
+ //        top + yLabelOffset,
+ //        left + textWidth + (2 * BOX_STROKE_WIDTH),
+ //        top,
+ //        labelPaints[colorID]);
+ //    yLabelOffset += ID_TEXT_SIZE;
+ //    canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
+ //    if (face.getTrackingId() != null) {
+ //      canvas.drawText("ID: " + face.getTrackingId(), left, top + yLabelOffset, idPaints[colorID]);
+ //      yLabelOffset += lineHeight;
+ //    }
+ */
 
-    // Draws all face contours.
-    for (FaceContour contour : face.getAllContours()) {
-      for (PointF point : contour.getPoints()) {
-        canvas.drawCircle(
-            translateX(point.x), translateY(point.y), FACE_POSITION_RADIUS, facePositionPaint);
-      }
-    }
-
+/*
     // Draws smiling and left/right eye open probabilities.
     if (face.getSmilingProbability() != null) {
       canvas.drawText(
@@ -304,5 +370,5 @@ public class FaceGraphic extends Graphic {
           facePositionPaint);
     }
  */
-  }
+
 }
