@@ -4,7 +4,7 @@
 
 This Android app builds upon the ML Kit Quickstart app using its [face detection](https://developers.google.com/ml-kit/vision/face-detection/android) feature to transform human facial expressions into emojis! The purpose is to help users identify the emotions of others in real time. Emojis have been shown to improve digital communication, so applying these familiar faces to human faces in real time can assist those who might struggle with reading the emotions of others in their physical world. 
 
-<img src="../screenshots/quickstart-picker.png" width="220"/> <img src="../screenshots/quickstart-image-labeling.png" width="220"/> <img src="../screenshots/quickstart-object-detection.png" width="220"/> <img src="../screenshots/quickstart-pose-detection.png" width="220"/>
+<img src="EmojifyLogo.png"><img src="GroupPhoto.png" width="500">
 
 ## How the app works
 
